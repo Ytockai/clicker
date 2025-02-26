@@ -2,19 +2,22 @@ import os
 import requests
 from requests.exceptions import HTTPError
 from urllib.parse import urlparse
+from dotenv import load_dotenv
+load_dotenv()
 
 
 URL = 'https://api.vk.com/method/'
-VK_TOKEN = '56de17aa56de17aa56de17aad955f7babe556de56de17aa31738e30f4178c16c87b6474'
+VK_TOKEN = os.getenv("TOKEN")
+USER_INPUT = input("Введите ссылку:")
 
-def shorten_link(user_input, VK_TOKEN):
-    utils = 'utils.getShortLink'
+def shorten_link(user_input, vk_token):
+    method = 'utils.getShortLink'
     param = {
-        'access_token': VK_TOKEN,
+        'access_token': vk_token,
         'url': user_input,
         'v': '5.199'
     }
-    response = requests.post(f'{URL}{utils}', params=param)
+    response = requests.post(f'{URL}{method}', params=param)
     response.raise_for_status()
     short_link = response.json()
     if 'error' in short_link:
@@ -22,52 +25,44 @@ def shorten_link(user_input, VK_TOKEN):
         raise HTTPError(error)
     return short_link['response']['short_url']
     
-def count_clicks(flag, VK_TOKEN):
-    utils = 'utils.getLinkStats'
+def count_clicks(user_input, vk_token):
+    method = 'utils.getLinkStats'
     param = {
-        'access_token': VK_TOKEN,
-        'key': flag,
-        'interval': 'forever',
+        'access_token': vk_token,
+        'key': urlparse(user_input).path[1:],
+        'interval': 'week',
         'v': '5.199'
     }
-    response = requests.post(f'{URL}{utils}', params=param)
+    response = requests.post(f'{URL}{method}', params=param)
     response.raise_for_status()
-    short_link = response.json()
-    return short_link
+    try:
+        count = response.json()['response']['stats'][0]['views']
+        return count
+    except IndexError:
+        return 0
 
     
-def is_shorten_link(user_input, VK_TOKEN):
+def is_shorten_link(user_input, vk_token):
     if urlparse(user_input).netloc == 'vk.cc' and urlparse(user_input).path:
         utils = 'utils.getLinkStats'
         param = {
-            'access_token': VK_TOKEN,
+            'access_token': vk_token,
             'key': urlparse(user_input).path[1:],
             'v': '5.199'
         }
         response = requests.post(f'{URL}{utils}', params=param)
         response.raise_for_status()
-        short_link = response.json()
-        print(short_link)
-        if 'error' in short_link:
+        if 'error' in response.json():
             raise HTTPError('ссылка не действительна')
-        elif urlparse(user_input).path:
-            return urlparse(user_input).path[1:]
+        return True
     return False
 
 def main():
-    user_input = input("Введите ссылку:")
     try:
-        flag = is_shorten_link(user_input, VK_TOKEN)
-        if not flag:
-            link = shorten_link(user_input, VK_TOKEN)
-            print('Сокращенная ссылка:', link)
+        if is_shorten_link(USER_INPUT, VK_TOKEN):
+            print(f'Кол-во переходов:{count_clicks(USER_INPUT, VK_TOKEN)}')
         else:
-            link = count_clicks(flag, VK_TOKEN)
-            try:
-                count = link['response']['stats'][0]['views']
-                print('Количество переходов по ссылке:', count)
-            except IndexError:
-                print('Количество переходов по ссылке: 0')
+            print('Сокращенная ссылка:', shorten_link(USER_INPUT, VK_TOKEN))
     except HTTPError as http_error:
         print(f'Ошибка ссылки: {http_error}')
     except KeyError:

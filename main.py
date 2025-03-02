@@ -6,10 +6,6 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-URL = 'https://api.vk.com/method/'
-VK_TOKEN = os.getenv("TOKEN")
-USER_INPUT = input("Введите ссылку:")
-
 def shorten_link(user_input, vk_token):
     method = 'utils.getShortLink'
     param = {
@@ -35,11 +31,7 @@ def count_clicks(user_input, vk_token):
     }
     response = requests.post(f'{URL}{method}', params=param)
     response.raise_for_status()
-    try:
-        count = response.json()['response']['stats'][0]['views']
-        return count
-    except IndexError:
-        return 0
+    return response
 
     
 def is_shorten_link(user_input, vk_token):
@@ -60,7 +52,11 @@ def is_shorten_link(user_input, vk_token):
 def main():
     try:
         if is_shorten_link(USER_INPUT, VK_TOKEN):
-            print(f'Кол-во переходов:{count_clicks(USER_INPUT, VK_TOKEN)}')
+            try:
+                count = count_clicks(USER_INPUT, VK_TOKEN).json()['response']['stats'][0]['views']
+            except IndexError:
+                count = 0
+            print(f'Кол-во переходов:{count}')
         else:
             print('Сокращенная ссылка:', shorten_link(USER_INPUT, VK_TOKEN))
     except HTTPError as http_error:
@@ -70,4 +66,7 @@ def main():
     
 
 if __name__ == '__main__':
-  main()
+    URL = 'https://api.vk.com/method/'
+    VK_TOKEN = os.environ["TOKEN"]
+    USER_INPUT = input("Введите ссылку:")
+    main()

@@ -3,7 +3,8 @@ import requests
 from requests.exceptions import HTTPError
 from urllib.parse import urlparse
 from dotenv import load_dotenv
-load_dotenv()
+
+URL = 'https://api.vk.com/method/'
 
 
 def shorten_link(user_input, vk_token):
@@ -50,15 +51,18 @@ def is_shorten_link(user_input, vk_token):
     return False
 
 def main():
+    load_dotenv()
+    vk_token = os.environ["TOKEN_VK"]
+    user_input = input("Введите ссылку:")
     try:
-        if is_shorten_link(USER_INPUT, VK_TOKEN):
+        if is_shorten_link(user_input, vk_token):
             try:
-                count = count_clicks(USER_INPUT, VK_TOKEN).json()['response']['stats'][0]['views']
+                count = count_clicks(user_input, vk_token).json()['response']['stats'][0]['views']
             except IndexError:
                 count = 0
             print(f'Кол-во переходов:{count}')
         else:
-            print('Сокращенная ссылка:', shorten_link(USER_INPUT, VK_TOKEN))
+            print('Сокращенная ссылка:', shorten_link(user_input, vk_token))
     except HTTPError as http_error:
         print(f'Ошибка ссылки: {http_error}')
     except KeyError:
@@ -66,7 +70,4 @@ def main():
     
 
 if __name__ == '__main__':
-    URL = 'https://api.vk.com/method/'
-    VK_TOKEN = os.environ["TOKEN"]
-    USER_INPUT = input("Введите ссылку:")
     main()

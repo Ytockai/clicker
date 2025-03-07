@@ -1,5 +1,6 @@
 import os
 import requests
+import argparse
 from requests.exceptions import HTTPError
 from urllib.parse import urlparse
 from dotenv import load_dotenv
@@ -53,7 +54,10 @@ def is_shorten_link(user_input, vk_token):
 def main():
     load_dotenv()
     vk_token = os.environ["TOKEN_VK"]
-    user_input = input("Введите ссылку:")
+    parser = argparse.ArgumentParser()
+    parser.add_argument('link')
+    args = parser.parse_args()
+    user_input = args.link
     try:
         if is_shorten_link(user_input, vk_token):
             try:

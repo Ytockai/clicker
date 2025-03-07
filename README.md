@@ -16,6 +16,10 @@ Python3 должен быть уже установлен.
 ```
 pip install -r requirements.txt
 ```
+Рекомендуется использовать [виртуальную среду](https://timeweb.cloud/tutorials/python/kak-sozdat-virtualnoe-okruzhenie) для изоляции проекта
+```
+Ссылку вводить в формате 
+`python main.py 'ссылка'`
 
 ### Цель проекта
 

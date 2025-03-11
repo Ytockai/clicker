@@ -37,19 +37,20 @@ def count_clicks(user_input, vk_token):
 
     
 def is_shorten_link(user_input, vk_token):
-    if urlparse(user_input).netloc == 'vk.cc' and urlparse(user_input).path:
-        utils = 'utils.getLinkStats'
-        param = {
-            'access_token': vk_token,
-            'key': urlparse(user_input).path[1:],
-            'v': '5.199'
+    if urlparse(user_input).netloc != 'vk.cc' and not urlparse(user_input).path:
+        return False
+    utils = 'utils.getLinkStats'
+    param = {
+        'access_token': vk_token,
+        'key': urlparse(user_input).path[1:],
+        'v': '5.199'
         }
-        response = requests.post(f'{URL}{utils}', params=param)
-        response.raise_for_status()
-        if 'error' in response.json():
-            raise HTTPError('ссылка не действительна')
+    response = requests.post(f'{URL}{utils}', params=param)
+    response.raise_for_status()
+    if 'error' not in response.json():
         return True
-    return False
+    
+
 
 def main():
     load_dotenv()
